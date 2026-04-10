@@ -29,9 +29,9 @@ public class FireballEventHandler {
                 int entityId = fireball.getEntityId();
                 currentFireballs.add(entityId);
 
-                List<Vec3> trajectory = FireballTrajectoryPredictor.predictTrajectory(fireball);
-                Vec3 landingPosition = FireballTrajectoryPredictor.predictLandingPosition(trajectory);
-                FireballTrajectoryRenderer.addFireball(entityId, trajectory, landingPosition);
+                TrajectoryResult result = FireballTrajectoryPredictor.predictTrajectory(fireball);
+                Vec3 landingPosition = FireballTrajectoryPredictor.predictLandingPosition(result.points);
+                FireballTrajectoryRenderer.addFireball(entityId, result.points, landingPosition, result.impactTimeSeconds, result.collisionNormal);
             }
         }
 

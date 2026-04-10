@@ -9,6 +9,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class GuiFireballConfig extends GuiScreen {
     private static final int BUTTON_MOD_TOGGLE = 100;
     private static final int BUTTON_MARKER_TOGGLE = 101;
+    private static final int BUTTON_TIME_TOGGLE = 102;
     private static final int BUTTON_COLOR_R_MINUS = 200;
     private static final int BUTTON_COLOR_R_PLUS = 201;
     private static final int BUTTON_COLOR_G_MINUS = 202;
@@ -21,34 +22,41 @@ public class GuiFireballConfig extends GuiScreen {
     private static final int BUTTON_WIDTH_PLUS = 209;
     private static final int BUTTON_MARKER_WIDTH_MINUS = 210;
     private static final int BUTTON_MARKER_WIDTH_PLUS = 211;
+    private static final int BUTTON_FONT_SIZE_MINUS = 212;
+    private static final int BUTTON_FONT_SIZE_PLUS = 213;
     private static final int BUTTON_DONE = 300;
 
     private boolean modEnabled;
     private boolean showLandingMarker;
+    private boolean showImpactTime;
     private int colorR, colorG, colorB, colorA;
     private float lineWidth;
     private float markerLineWidth;
+    private float impactTimeFontSize;
 
     public GuiFireballConfig() {
         this.modEnabled = ModConfig.modEnabled;
         this.showLandingMarker = ModConfig.showLandingMarker;
+        this.showImpactTime = ModConfig.showImpactTime;
         this.colorR = ModConfig.trajectoryColorR;
         this.colorG = ModConfig.trajectoryColorG;
         this.colorB = ModConfig.trajectoryColorB;
         this.colorA = ModConfig.trajectoryColorA;
         this.lineWidth = ModConfig.trajectoryLineWidth;
         this.markerLineWidth = ModConfig.landingMarkerLineWidth;
+        this.impactTimeFontSize = ModConfig.impactTimeFontSize;
     }
 
     public void initGui() {
         super.initGui();
         int centerX = this.width / 2;
-        int startY = this.height / 2 - 80;
+        int startY = this.height / 2 - 100;
 
         this.buttonList.add(new GuiButton(BUTTON_MOD_TOGGLE, centerX - 80, startY + 0, 160, 22, getToggleLabel("Mod Enabled", modEnabled)));
         this.buttonList.add(new GuiButton(BUTTON_MARKER_TOGGLE, centerX - 80, startY + 30, 160, 22, getToggleLabel("Show Landing Marker", showLandingMarker)));
+        this.buttonList.add(new GuiButton(BUTTON_TIME_TOGGLE, centerX - 80, startY + 60, 160, 22, getToggleLabel("Show Impact Time", showImpactTime)));
 
-        int colorStartY = startY + 78;
+        int colorStartY = startY + 98;
         int rowHeight = 28;
 
         this.buttonList.add(new GuiButton(BUTTON_COLOR_R_MINUS, centerX - 90, colorStartY, 24, 20, "-"));
@@ -71,7 +79,11 @@ public class GuiFireballConfig extends GuiScreen {
         this.buttonList.add(new GuiButton(BUTTON_MARKER_WIDTH_MINUS, centerX - 90, widthStartY + rowHeight, 24, 20, "-"));
         this.buttonList.add(new GuiButton(BUTTON_MARKER_WIDTH_PLUS, centerX + 16, widthStartY + rowHeight, 24, 20, "+"));
 
-        int btnY = widthStartY + rowHeight * 2 + 8;
+        fontRendererObj.drawStringWithShadow("--- Impact Time ---", centerX - 55, widthStartY + rowHeight * 2 - 14, 10526880);
+        this.buttonList.add(new GuiButton(BUTTON_FONT_SIZE_MINUS, centerX - 90, widthStartY + rowHeight * 2, 24, 20, "-"));
+        this.buttonList.add(new GuiButton(BUTTON_FONT_SIZE_PLUS, centerX + 16, widthStartY + rowHeight * 2, 24, 20, "+"));
+
+        int btnY = widthStartY + rowHeight * 3 + 8;
         this.buttonList.add(new GuiButton(BUTTON_DONE, centerX - 40, btnY, 80, 22, "Done"));
     }
 
@@ -88,6 +100,10 @@ public class GuiFireballConfig extends GuiScreen {
             case BUTTON_MARKER_TOGGLE:
                 showLandingMarker = !showLandingMarker;
                 button.displayString = getToggleLabel("Show Landing Marker", showLandingMarker);
+                break;
+            case BUTTON_TIME_TOGGLE:
+                showImpactTime = !showImpactTime;
+                button.displayString = getToggleLabel("Show Impact Time", showImpactTime);
                 break;
             case BUTTON_COLOR_R_MINUS:
                 colorR = Math.max(0, colorR - 15);
@@ -125,6 +141,12 @@ public class GuiFireballConfig extends GuiScreen {
             case BUTTON_MARKER_WIDTH_PLUS:
                 markerLineWidth = Math.min(20.0F, markerLineWidth + 0.5F);
                 break;
+            case BUTTON_FONT_SIZE_MINUS:
+                impactTimeFontSize = Math.max(0.01F, impactTimeFontSize - 0.005F);
+                break;
+            case BUTTON_FONT_SIZE_PLUS:
+                impactTimeFontSize = Math.min(0.2F, impactTimeFontSize + 0.005F);
+                break;
             case BUTTON_DONE:
                 applyAndSave();
                 mc.displayGuiScreen(null);
@@ -135,12 +157,14 @@ public class GuiFireballConfig extends GuiScreen {
     private void applyAndSave() {
         ModConfig.modEnabled = modEnabled;
         ModConfig.showLandingMarker = showLandingMarker;
+        ModConfig.showImpactTime = showImpactTime;
         ModConfig.trajectoryColorR = colorR;
         ModConfig.trajectoryColorG = colorG;
         ModConfig.trajectoryColorB = colorB;
         ModConfig.trajectoryColorA = colorA;
         ModConfig.trajectoryLineWidth = lineWidth;
         ModConfig.landingMarkerLineWidth = markerLineWidth;
+        ModConfig.impactTimeFontSize = impactTimeFontSize;
         ModConfig.save();
     }
 
@@ -150,11 +174,11 @@ public class GuiFireballConfig extends GuiScreen {
         drawCenteredString(fontRendererObj, "Fireball Predict Config", width / 2, 18, 16777215);
 
         int centerX = width / 2;
-        int startY = this.height / 2 - 80;
+        int startY = this.height / 2 - 100;
 
         fontRendererObj.drawStringWithShadow("--- General Settings ---", centerX - 70, startY - 14, 10526880);
 
-        int colorStartY = startY + 78;
+        int colorStartY = startY + 98;
         fontRendererObj.drawStringWithShadow("--- Trajectory Line Color ---", centerX - 82, colorStartY - 14, 10526880);
 
         int rowHeight = 28;
@@ -175,6 +199,9 @@ public class GuiFireballConfig extends GuiScreen {
         fontRendererObj.drawStringWithShadow(wStr, labelX, widthStartY + 6, 0xFFCCCCCC);
         String mwStr = "Marker: " + String.format("%.1f", markerLineWidth);
         fontRendererObj.drawStringWithShadow(mwStr, labelX, widthStartY + rowHeight + 6, 0xFFCCCCCC);
+
+        String fsStr = "Font Size: " + String.format("%.3f", impactTimeFontSize);
+        fontRendererObj.drawStringWithShadow(fsStr, labelX, widthStartY + rowHeight * 2 + 6, 0xFFCCCCCC);
 
         int previewX = centerX + 62;
         int previewY = colorStartY + 4;

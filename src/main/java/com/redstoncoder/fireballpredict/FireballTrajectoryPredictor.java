@@ -3,6 +3,7 @@ package com.redstoncoder.fireballpredict;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
@@ -13,7 +14,7 @@ import java.util.List;
 public class FireballTrajectoryPredictor {
     private static final int MAX_PREDICTION_TICKS = 600;
 
-    public static List<Vec3> predictTrajectory(EntityFireball fireball) {
+    public static TrajectoryResult predictTrajectory(EntityFireball fireball) {
         List<Vec3> trajectory = new ArrayList<Vec3>();
         World world = fireball.worldObj;
 
@@ -30,6 +31,9 @@ public class FireballTrajectoryPredictor {
         double accelerationZ = fireball.accelerationZ;
 
         trajectory.add(new Vec3(posX, posY, posZ));
+
+        float impactTime = -1f;
+        Vec3 collisionNormal = null;
 
         for (int i = 0; i < MAX_PREDICTION_TICKS; i++) {
             motionX += accelerationX;
@@ -48,7 +52,9 @@ public class FireballTrajectoryPredictor {
 
             MovingObjectPosition collision = getClosestCollision(start, blockCollision, entityCollision);
             if (collision != null) {
-                trajectory.add(new Vec3(collision.hitVec.xCoord, collision.hitVec.yCoord, collision.hitVec.zCoord));
+                trajectory.add(collision.hitVec);
+                impactTime = (i + 1) / 20f;
+                collisionNormal = getCollisionNormal(collision);
                 break;
             }
 
@@ -63,7 +69,11 @@ public class FireballTrajectoryPredictor {
             }
         }
 
-        return trajectory;
+        return new TrajectoryResult(trajectory, impactTime, impactTime >= 0, collisionNormal);
+    }
+
+    public static List<Vec3> predictTrajectoryLegacy(EntityFireball fireball) {
+        return predictTrajectory(fireball).points;
     }
 
     public static Vec3 predictLandingPosition(List<Vec3> trajectory) {
@@ -71,6 +81,33 @@ public class FireballTrajectoryPredictor {
             return new Vec3(0, 0, 0);
         }
         return trajectory.get(trajectory.size() - 1);
+    }
+
+    private static Vec3 getCollisionNormal(MovingObjectPosition mop) {
+        if (mop == null) return null;
+        if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && mop.sideHit != null) {
+            EnumFacing facing = mop.sideHit;
+            switch (facing) {
+                case DOWN:  return new Vec3(0, -1, 0);
+                case UP:    return new Vec3(0, 1, 0);
+                case NORTH: return new Vec3(0, 0, -1);
+                case SOUTH: return new Vec3(0, 0, 1);
+                case WEST:  return new Vec3(-1, 0, 0);
+                case EAST:  return new Vec3(1, 0, 0);
+            }
+        }
+        if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && mop.entityHit != null) {
+            Vec3 hitPos = mop.hitVec;
+            Entity entity = mop.entityHit;
+            double cx = entity.posX;
+            double cy = entity.posY + entity.height / 2.0;
+            double cz = entity.posZ;
+            Vec3 center = new Vec3(cx, cy, cz);
+            Vec3 normal = hitPos.subtract(center).normalize();
+            if (normal.lengthVector() < 0.01) return new Vec3(0, 1, 0);
+            return normal;
+        }
+        return new Vec3(0, 1, 0);
     }
 
     private static MovingObjectPosition rayTraceEntities(World world, Vec3 start, Vec3 end, EntityFireball fireball) {
