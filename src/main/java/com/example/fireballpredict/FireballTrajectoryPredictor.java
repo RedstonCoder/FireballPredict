@@ -71,10 +71,9 @@ public class FireballTrajectoryPredictor {
         return trajectory;
     }
 
-    public static Vec3 predictLandingPosition(EntityFireball fireball) {
-        List<Vec3> trajectory = predictTrajectory(fireball);
+    public static Vec3 predictLandingPosition(List<Vec3> trajectory) {
         if (trajectory.isEmpty()) {
-            return new Vec3(fireball.posX, fireball.posY, fireball.posZ);
+            return new Vec3(0, 0, 0);
         }
         return trajectory.get(trajectory.size() - 1);
     }
@@ -140,18 +139,7 @@ public class FireballTrajectoryPredictor {
         }
 
         double blockDist = blockCollision.hitVec.distanceTo(start);
-
-        Entity entity = entityCollision.entityHit;
-        double entityDist = Double.MAX_VALUE;
-        if (entity != null) {
-            AxisAlignedBB entityBB = entity.getEntityBoundingBox();
-            Vec3 entityDir = new Vec3(entity.posX - start.xCoord, entity.posY - start.yCoord, entity.posZ - start.zCoord);
-            Vec3 farEnd = start.addVector(entityDir.xCoord * 100, entityDir.yCoord * 100, entityDir.zCoord * 100);
-            MovingObjectPosition intercept = entityBB.calculateIntercept(start, farEnd);
-            if (intercept != null) {
-                entityDist = intercept.hitVec.distanceTo(start);
-            }
-        }
+        double entityDist = entityCollision.hitVec.distanceTo(start);
 
         return blockDist <= entityDist ? blockCollision : entityCollision;
     }
