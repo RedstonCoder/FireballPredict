@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FireballTrajectoryPredictor {
-    private static final float MOTION_FACTOR = 0.95F;
     private static final int MAX_PREDICTION_TICKS = 600;
 
     public static List<Vec3> predictTrajectory(EntityFireball fireball) {
@@ -36,10 +35,6 @@ public class FireballTrajectoryPredictor {
             motionX += accelerationX;
             motionY += accelerationY;
             motionZ += accelerationZ;
-
-            motionX *= MOTION_FACTOR;
-            motionY *= MOTION_FACTOR;
-            motionZ *= MOTION_FACTOR;
 
             double newPosX = posX + motionX;
             double newPosY = posY + motionY;
