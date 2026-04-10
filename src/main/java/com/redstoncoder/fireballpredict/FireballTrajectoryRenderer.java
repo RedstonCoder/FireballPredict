@@ -10,110 +10,20 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import org.lwjgl.opengl.GL11;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 @SideOnly(Side.CLIENT)
 public class FireballTrajectoryRenderer {
-    private static final Object dataLock = new Object();
-    private static final Map<Integer, List<Vec3>> trajectories = new HashMap<Integer, List<Vec3>>();
-    private static final Map<Integer, Vec3> landingPositions = new HashMap<Integer, Vec3>();
-    private static final Map<Integer, Float> impactTimes = new HashMap<Integer, Float>();
-    private static final Map<Integer, Vec3> collisionNormals = new HashMap<Integer, Vec3>();
-
-    public static void addFireball(int entityId, List<Vec3> trajectory, Vec3 landingPosition) {
-        addFireball(entityId, trajectory, landingPosition, -1f, null);
-    }
-
-    public static void addFireball(int entityId, List<Vec3> trajectory, Vec3 landingPosition, float impactTimeSeconds) {
-        addFireball(entityId, trajectory, landingPosition, impactTimeSeconds, null);
-    }
-
-    public static void addFireball(int entityId, List<Vec3> trajectory, Vec3 landingPosition, float impactTimeSeconds, Vec3 collisionNormal) {
-        synchronized (dataLock) {
-            trajectories.put(entityId, trajectory);
-            landingPositions.put(entityId, landingPosition);
-            if (impactTimeSeconds > 0) {
-                impactTimes.put(entityId, impactTimeSeconds);
-            }
-            if (collisionNormal != null) {
-                collisionNormals.put(entityId, collisionNormal);
-            }
-        }
-    }
-
-    public static void removeFireball(int entityId) {
-        synchronized (dataLock) {
-            trajectories.remove(entityId);
-            landingPositions.remove(entityId);
-            impactTimes.remove(entityId);
-            collisionNormals.remove(entityId);
-        }
-    }
-
-    public static void cleanupRemoved(List<Integer> currentIds) {
-        synchronized (dataLock) {
-            Iterator<Map.Entry<Integer, List<Vec3>>> iter = trajectories.entrySet().iterator();
-            while (iter.hasNext()) {
-                if (!currentIds.contains(iter.next().getKey())) {
-                    iter.remove();
-                }
-            }
-            Iterator<Map.Entry<Integer, Vec3>> iter2 = landingPositions.entrySet().iterator();
-            while (iter2.hasNext()) {
-                if (!currentIds.contains(iter2.next().getKey())) {
-                    iter2.remove();
-                }
-            }
-            Iterator<Map.Entry<Integer, Float>> iter3 = impactTimes.entrySet().iterator();
-            while (iter3.hasNext()) {
-                if (!currentIds.contains(iter3.next().getKey())) {
-                    iter3.remove();
-                }
-            }
-            Iterator<Map.Entry<Integer, Vec3>> iter4 = collisionNormals.entrySet().iterator();
-            while (iter4.hasNext()) {
-                if (!currentIds.contains(iter4.next().getKey())) {
-                    iter4.remove();
-                }
-            }
-        }
-    }
-
-    private static Map<Integer, List<Vec3>> getTrajectorySnapshot() {
-        synchronized (dataLock) {
-            return new HashMap<Integer, List<Vec3>>(trajectories);
-        }
-    }
-
-    private static Map<Integer, Vec3> getLandingSnapshot() {
-        synchronized (dataLock) {
-            return new HashMap<Integer, Vec3>(landingPositions);
-        }
-    }
-
-    private static Map<Integer, Float> getImpactTimeSnapshot() {
-        synchronized (dataLock) {
-            return new HashMap<Integer, Float>(impactTimes);
-        }
-    }
-
-    private static Map<Integer, Vec3> getCollisionNormalSnapshot() {
-        synchronized (dataLock) {
-            return new HashMap<Integer, Vec3>(collisionNormals);
-        }
-    }
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
         if (!ModConfig.modEnabled) return;
 
-        Map<Integer, List<Vec3>> trajectorySnapshot = getTrajectorySnapshot();
-        Map<Integer, Vec3> landingSnapshot = getLandingSnapshot();
-        Map<Integer, Float> impactTimeSnapshot = getImpactTimeSnapshot();
-        Map<Integer, Vec3> normalSnapshot = getCollisionNormalSnapshot();
+        Map<Integer, List<Vec3>> trajectorySnapshot = FireballData.getTrajectorySnapshot();
+        Map<Integer, Vec3> landingSnapshot = FireballData.getLandingSnapshot();
+        Map<Integer, Float> impactTimeSnapshot = FireballData.getImpactTimeSnapshot();
+        Map<Integer, Vec3> normalSnapshot = FireballData.getCollisionNormalSnapshot();
 
         if (trajectorySnapshot.isEmpty()) return;
 
