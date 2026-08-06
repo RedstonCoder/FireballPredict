@@ -28,6 +28,7 @@ public class FireballEventHandler {
         for (Object entityObj : mc.theWorld.loadedEntityList) {
             if (entityObj instanceof EntityFireball) {
                 EntityFireball fireball = (EntityFireball) entityObj;
+                if (fireball.isDead) continue;
                 int entityId = fireball.getEntityId();
                 currentFireballs.add(entityId);
 

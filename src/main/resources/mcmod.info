@@ -3,8 +3,8 @@
         "modid": "fireballpredict",
         "name": "FireballPredict",
         "description": "A mod to predict fireball trajectories",
-        "version": "1.0.2",
-        "mcversion": "1.0.0,
+        "version": "${version}",
+        "mcversion": "${mcversion}",
         "authors": [
             "RedStonCoder"
         ],

@@ -25,9 +25,8 @@ public class FireballPredict {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        MinecraftForge.EVENT_BUS.register(new FireballEventHandler());
-
         if (event.getSide() == Side.CLIENT) {
+            MinecraftForge.EVENT_BUS.register(new FireballEventHandler());
             MinecraftForge.EVENT_BUS.register(new FireballTrajectoryRenderer());
             ConfigKeyHandler.register();
             MinecraftForge.EVENT_BUS.register(new ConfigKeyHandler());
